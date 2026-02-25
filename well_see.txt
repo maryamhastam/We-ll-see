@@ -1,0 +1,112 @@
+# save as: well_see.py
+import random
+import textwrap
+from datetime import datetime
+
+OPENERS = [
+    "Look,",
+    "Listen,",
+    "Let me tell you,",
+    "A lot of people are saying,",
+    "Nobody knows more about this than me,",
+    "We’re doing a tremendous job,",
+]
+
+DODGES = [
+    "we’re looking at it very strongly.",
+    "we have options — many options.",
+    "it’s complicated, but we’re on top of it.",
+    "I don’t want to telegraph strategy.",
+    "we’ll have something to say at the right time.",
+    "we’re in very serious talks.",
+    "we’re working with the best people. The best.",
+]
+
+CLOSERS = [
+    "We’ll see what happens.",
+    "We’ll see. We’ll see what happens.",
+    "You’ll find out soon. We’ll see what happens.",
+    "We’ll see what happens.",
+]
+
+SPICY_ADJECTIVES = [
+    "strong", "very strong", "incredible", "tremendous", "historic", "beautiful"
+]
+
+KEYWORDS_IRAN = {"iran", "tehran", "middle east", "gulf"}
+KEYWORDS_STRIKE = {"strike", "attack", "bomb", "missile", "war"}
+KEYWORDS_WHEN = {"when", "timeline", "date", "today", "tomorrow", "how soon", "deadline"}
+
+
+def normalize(s: str) -> str:
+    return " ".join(s.strip().lower().split())
+
+
+def answer(q: str) -> str:
+    nq = normalize(q)
+
+    # Special meme mode: Iran + strike-ish question => maximum non-answer
+    if any(k in nq for k in KEYWORDS_IRAN) and any(k in nq for k in KEYWORDS_STRIKE):
+        bits = [
+            random.choice(OPENERS),
+            f"it’ll be {random.choice(SPICY_ADJECTIVES)}.",
+            random.choice(DODGES),
+            random.choice(CLOSERS),
+        ]
+        return " ".join(bits)
+
+    # “When?” questions get extra evasive
+    if any(k in nq for k in KEYWORDS_WHEN):
+        bits = [
+            random.choice(OPENERS),
+            "timing is everything.",
+            random.choice(DODGES),
+            random.choice(CLOSERS),
+        ]
+        return " ".join(bits)
+
+    # Default: generic press-conference dodge
+    bits = [
+        random.choice(OPENERS),
+        random.choice(DODGES),
+        random.choice(CLOSERS),
+    ]
+    return " ".join(bits)
+
+
+def fake_tweet(q: str) -> str:
+    nq = normalize(q)
+    tag = "#WELLSEE" if ("iran" in nq or "tehran" in nq) else "#USA"
+    tweet = f"{answer(q)} {tag}"
+    # keep it tweet-ish
+    return tweet[:280]
+
+
+def main():
+    print("\n=== \"We’ll See What Happens\" — Press Conference Simulator ===")
+    print("Type a question. Commands: /tweet, /exit\n")
+
+    while True:
+        q = input("Q> ").strip()
+        if not q:
+            continue
+        if q.lower() in {"/exit", "exit", "quit"}:
+            print("A> Thank you everybody. We’ll see what happens. 🙂")
+            break
+
+        if q.lower().startswith("/tweet"):
+            payload = q[len("/tweet"):].strip() or "Any updates?"
+            print("\nTWEET:")
+            print(fake_tweet(payload))
+            print()
+            continue
+
+        resp = answer(q)
+        stamp = datetime.now().strftime("%H:%M:%S")
+        print("\nA>")
+        print(textwrap.fill(resp, width=78))
+        print(f"({stamp})\n")
+
+
+if __name__ == "__main__":
+    main()
